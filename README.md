@@ -1,3 +1,3 @@
 Python Texter
 
-build with [unicurses](https://github.com/unicurses/unicurses)
+build with [windows-curses](https://github.com/zephyrproject-rtos/windows-curses)

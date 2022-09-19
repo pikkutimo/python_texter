@@ -1,44 +1,15 @@
-from unicurses import *
+from curses import wrapper
 
-def print_in_middle(win, starty, startx, width, string):
-    if (win == None): win = stdscr
-    y, x = getyx(win)
-    if (startx != 0): x = startx
-    if (starty != 0): y = starty
-    if (width == 0): width = 80
-    length = len(string)
-    temp = (width - length) / 2
-    x = startx + int(temp)
-    mvaddstr(y, x, string)
+def main(stdscr):
+    # Clear screen
+    stdscr.clear()
 
+    # This raises ZeroDivisionError when i == 10.
+    for i in range(1, 11):
+        v = i-10
+        stdscr.addstr(i, 0, '10 divided by {} is {}'.format(v, 10))
 
-stdscr = initscr()
-noecho()
-LINES, COLS = getmaxyx(stdscr)
+    stdscr.refresh()
+    stdscr.getkey()
 
-if (has_colors() == False):
-    endwin()
-    print("Your terminal does not support color!")
-    exit(1)
-
-start_color()
-init_pair(1, COLOR_RED, COLOR_BLACK)
-
-border()
-attron(COLOR_PAIR(1))
-print_in_middle(stdscr, int(LINES / 2), 0, 0, "This line should be displayed in red color.")
-addstr("What is your first name? ")
-refresh()
-echo()
-first = getstr()
-noecho()
-addstr("What is your last name? ")
-refresh()
-echo()
-second = getstr()
-string = f"Hello, {first} {second}"
-mvaddstr(50, 50, string)
-refresh()
-attroff(COLOR_PAIR(1))
-getch()
-endwin()
+wrapper(main)
