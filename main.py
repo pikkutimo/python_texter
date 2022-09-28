@@ -3,7 +3,7 @@ import curses
 # Allow user to input text
 # Check if input_char is equal to string[X] 
 # Count mistakes
-# Add possibility to amend your input?
+# Add possibility to amend your input
 # name = ""
 
 def check_for_diffences(input_string: str, message: str) -> int:
@@ -28,27 +28,43 @@ def show_text(stdscr, middle_row: int, message: str, num_cols: int) -> int:
 
 def get_input(stdscr, middle_row: int, cursor_pos: int, message: str):
 
-    input_string = ""
+    user_input = ""
+    index = -1
     count = 0
+    user_editing = False
     curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)
     stdscr.keypad(True)
 
+    # Main loop
     while True:
         input_char = stdscr.get_wch()
         if input_char == curses.KEY_LEFT:
-            # HOWTO - allow user to edit his input
-            stdscr.addstr(middle_row - 5, cursor_pos, "Cursor key")
+            # If the user presses the left arrow key and there are char in the list:
+            # Back the index down by one and make the cursor visible to the user.
+            if user_editing:
+                index -= 1
+            curses.curs_set(1)
+            user_input = user_input[:index]
+            stdscr.addstr(middle_row, cursor_pos, user_input)
             continue
-        input_string += input_char
-        stdscr.addstr(middle_row, cursor_pos, input_string)
+        if input_char == curses.KEY_RIGHT:
+            pass
+        # if the user has edited the content of the user_input
+        if user_editing:
+            user_editing = False
+        user_input += input_char
+        stdscr.addstr(middle_row, cursor_pos, user_input)
 
-        count = check_for_diffences(input_string, message)
-        if count > 0:
-            error_message = f"Out of {len(input_string)} characters, you have {count} errors"
-            stdscr.addstr(middle_row + 5, cursor_pos, error_message)
-
-        if len(input_string) == len(message):
+        if len(user_input) == len(message):
             break
+
+    count = check_for_diffences(user_input, message)
+    if count > 0:
+        error_message = f"Out of {len(user_input)} characters, you have {count} errors"
+        stdscr.addstr(middle_row + 3, cursor_pos, error_message)
+
+    stdscr.addstr(middle_row + 6, cursor_pos, "Done")
+    stdscr.getkey()
 
 def main(stdscr):
     # Clear screen
@@ -62,8 +78,6 @@ def main(stdscr):
     
     get_input(stdscr, middle_row, cursor_pos, message)
 
-    stdscr.refresh()
-    stdscr.getkey()
 
 # The wrapper takes callable object and does the initializations for you and after the callable returns, the wrapper restores the terminal's original state.
 # The wrapper contains try...catch for this purpose.
