@@ -17,7 +17,8 @@ def check_for_diffences(input_string: str, message: str) -> int:
     return errors
 
 def show_text(stdscr, middle_row: int, message: str, num_cols: int) -> int:
-# show text and return the starting position for the text
+    # show text and return the starting position for the text
+    # Separate the calculation into separate method
     curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
     half_length_of_message = int(len(message) / 2)
     middle_column = int(num_cols / 2)
@@ -27,11 +28,15 @@ def show_text(stdscr, middle_row: int, message: str, num_cols: int) -> int:
 
     return x_position
 
-def words_per_minute():
+def calculate_wpm(time_start: float, time_end: float, user_input: str, error_count: int) -> int:
     # The value is calculated with the following formula:
     # Every character of the string divided by 5 per minutes minus uncorrected errors per minutes
-    #  
-    pass
+
+    minutes = (time_end - time_start) / 60
+    words = len(user_input) / 5
+
+    return int((words - error_count) / minutes)
+
 
 def get_input(stdscr, middle_row: int, cursor_pos: int, message: str):
 
@@ -71,13 +76,20 @@ def get_input(stdscr, middle_row: int, cursor_pos: int, message: str):
     
     time_end = perf_counter()
 
-    count = check_for_diffences(user_input, message)
+    error_count = check_for_diffences(user_input, message)
     if count > 0:
-        error_message = f"Out of {len(user_input)} characters, you have {count} errors."
+        error_message = f"Out of {len(user_input)} characters, you have {error_count} errors."
         stdscr.addstr(middle_row + 3, cursor_pos, error_message)
 
-    stdscr.addstr(middle_row + 6, cursor_pos, f"Done - It took you {time_end - time_start} seconds")
-    stdscr.getkey()
+    wpm = calculate_wpm(time_start, time_end, user_input, error_count)
+
+    stdscr.addstr(middle_row + 6, cursor_pos, f"Done - Your WPM score is {wpm} words per minute.")
+    stdscr.addstr(middle_row + 9, cursor_pos, f"Press Q to exit.")
+    
+    while True:
+        input_key = stdscr.getch()
+        if input_key == ord('q') or input_key == ord('Q'):
+            break
 
 def main(stdscr):
     # Clear screen
