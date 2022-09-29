@@ -1,5 +1,6 @@
 import curses
 from time import perf_counter
+from turtle import st
 # Show text
 # Allow user to input text
 # Check if input_char is equal to string[X] 
@@ -16,17 +17,13 @@ def check_for_diffences(input_string: str, message: str) -> int:
 
     return errors
 
-def show_text(stdscr, middle_row: int, message: str, num_cols: int) -> int:
-    # show text and return the starting position for the text
-    # Separate the calculation into separate method
-    curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
-    half_length_of_message = int(len(message) / 2)
+def calculate_x_position(num_cols: int, message: str) -> int:
     middle_column = int(num_cols / 2)
+    half_length_of_message = int(len(message) / 2)
     x_position = middle_column - half_length_of_message
 
-    stdscr.addstr(middle_row, x_position, message, curses.color_pair(1))
-
     return x_position
+
 
 def calculate_wpm(time_start: float, time_end: float, user_input: str, error_count: int) -> int:
     # The value is calculated with the following formula:
@@ -37,20 +34,36 @@ def calculate_wpm(time_start: float, time_end: float, user_input: str, error_cou
 
     return int((words - error_count) / minutes)
 
+def print_logo_and_menu(stdscr, num_cols: int):
 
-def get_input(stdscr, middle_row: int, cursor_pos: int, message: str):
+    logo = ["::::::::::::::::::::::::    :::::::::::::::::::::::::::::::::",  
+        "       :+:    :+:       :+:    :+:    :+:    :+:       :+:    :+:", 
+        "       +:+    +:+        +:+  +:+     +:+    +:+       +:+    +:+", 
+        "       +#+    +#++:++#    +#++:+      +#+    +#++:++#  +#++:++#:  ",
+        "       +#+    +#+        +#+  +#+     +#+    +#+       +#+    +#+ ",
+        "       #+#    #+#       #+#    #+#    #+#    #+#       #+#    #+# ",
+        "       ###    #############    ###    ###    #############    ### ",
+        "",
+        "__________________________________________________________________",
+        "",
+        "1. Test your speed",
+        "2. To quit the program",
+        "__________________________________________________________________"]     
+
+    logo_position = int(num_cols / 2 - len(logo[0]) / 2)
+    for i in range(len(logo)):
+        stdscr.addstr(5 + i, logo_position, logo[i], curses.color_pair(1))
+
+def get_input(window, cursor_pos: int, message: str):
 
     user_input = ""
     index = -1
     count = 0
     user_editing = False
-    curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)
-    stdscr.keypad(True)
-    # start = None
-    # Main loop
+    window.keypad(True)
     
     while True:
-        input_char = stdscr.get_wch()
+        input_char = window.get_wch()
         if len(user_input) == 0:
             # Start time
             time_start = perf_counter()
@@ -61,47 +74,60 @@ def get_input(stdscr, middle_row: int, cursor_pos: int, message: str):
                 index -= 1
             curses.curs_set(1)
             user_input = user_input[:index]
-            stdscr.addstr(middle_row, cursor_pos, user_input)
+            window.addstr(1, cursor_pos, user_input)
             continue
-        if input_char == curses.KEY_RIGHT:
-            pass
         # if the user has edited the content of the user_input
         if user_editing:
             user_editing = False
         user_input += input_char
-        stdscr.addstr(middle_row, cursor_pos, user_input)
+        window.addstr(1, cursor_pos, user_input)
 
         if len(user_input) == len(message):
             break
     
     time_end = perf_counter()
-
     error_count = check_for_diffences(user_input, message)
     if count > 0:
         error_message = f"Out of {len(user_input)} characters, you have {error_count} errors."
-        stdscr.addstr(middle_row + 3, cursor_pos, error_message)
+        window.addstr(3, cursor_pos, error_message)
 
     wpm = calculate_wpm(time_start, time_end, user_input, error_count)
 
-    stdscr.addstr(middle_row + 6, cursor_pos, f"Done - Your WPM score is {wpm} words per minute.")
-    stdscr.addstr(middle_row + 9, cursor_pos, f"Press Q to exit.")
+    window.addstr(5, cursor_pos, f"Done - Your WPM score is {wpm} words per minute.")
     
-    while True:
-        input_key = stdscr.getch()
-        if input_key == ord('q') or input_key == ord('Q'):
-            break
+    input_key = window.getch()
+
+def test():
+    pass
 
 def main(stdscr):
     # Clear screen
     stdscr.clear()
     curses.curs_set(0)
-    
+    curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
+    curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)
     num_rows, num_cols = stdscr.getmaxyx()
     middle_row = int(num_rows / 2)
-    message = "Hello, Matti! This is a sample."
-    cursor_pos = show_text(stdscr, middle_row, message, num_cols)
+
+   
     
-    get_input(stdscr, middle_row, cursor_pos, message)
+    while True:
+         # Name and menu
+        print_logo_and_menu(stdscr, num_cols)
+        # The choose option from menu
+        menu_selection = stdscr.getkey()
+
+        if menu_selection == "1":
+            window = curses.newwin((num_rows - middle_row), num_cols, middle_row, 0)
+            # Main loop
+            message = "Hello, Matti! This is a sample."
+            x_position = calculate_x_position(num_cols, message)
+            window.addstr(1, x_position, message, curses.color_pair(1))
+            get_input(window, x_position, message)
+            stdscr.clear()
+        if menu_selection == "2":
+            break
+        
 
 
 # The wrapper takes callable object and does the initializations for you and after the callable returns, the wrapper restores the terminal's original state.
