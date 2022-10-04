@@ -1,23 +1,23 @@
 import curses
 from time import perf_counter
-from turtle import st
 # Show text
 # Allow user to input text
-# Check if input_char is equal to string[X] 
+# Check if input_char is equal to string[X]
 # Count mistakes
 # Add possibility to amend your input
 # Calculate the words per minute
 
 def check_for_diffences(input_string: str, message: str) -> int:
+    """Compares the input_string against the message"""
     errors = 0
-    
-    for index in range(len(input_string)):
-        if input_string[index] != message[index]:
+    for index, char in enumerate(input_string):
+        if char != message[index]:
             errors += 1
 
     return errors
 
 def calculate_x_position(num_cols: int, message: str) -> int:
+    """Calculate the column where message"""
     middle_column = int(num_cols / 2)
     half_length_of_message = int(len(message) / 2)
     x_position = middle_column - half_length_of_message
@@ -26,6 +26,7 @@ def calculate_x_position(num_cols: int, message: str) -> int:
 
 
 def calculate_wpm(time_start: float, time_end: float, user_input: str, error_count: int) -> int:
+    """Calculate words per minute"""
     # The value is calculated with the following formula:
     # Every character of the string divided by 5 per minutes minus uncorrected errors per minutes
 
@@ -35,6 +36,7 @@ def calculate_wpm(time_start: float, time_end: float, user_input: str, error_cou
     return int((words - error_count) / minutes)
 
 def print_logo_and_menu(stdscr, num_cols: int):
+    """Print the logo and menu"""
 
     logo = ["::::::::::::::::::::::::    :::::::::::::::::::::::::::::::::",  
         "       :+:    :+:       :+:    :+:    :+:    :+:       :+:    :+:", 
@@ -51,8 +53,8 @@ def print_logo_and_menu(stdscr, num_cols: int):
         "__________________________________________________________________"]     
 
     logo_position = int(num_cols / 2 - len(logo[0]) / 2)
-    for i in range(len(logo)):
-        stdscr.addstr(5 + i, logo_position, logo[i], curses.color_pair(1))
+    for index in enumerate(logo):
+        stdscr.addstr(5 + index, logo_position, logo[index], curses.color_pair(1))
 
 def get_input(window, cursor_pos: int, message: str):
 
